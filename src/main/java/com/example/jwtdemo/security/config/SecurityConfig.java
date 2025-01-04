@@ -10,11 +10,20 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+
+import com.example.jwtdemo.security.filter.JwtFilter;
 
 
 @Configuration
 // @EnableMethodSecurity
 public class SecurityConfig {
+
+    private final JwtFilter jwtFilter;
+
+    public SecurityConfig(JwtFilter jwtFilter) {
+        this.jwtFilter = jwtFilter;
+    }
 
     /*
      * To enable username and password authentication, we need to provide two beans to spring context
@@ -47,7 +56,26 @@ public class SecurityConfig {
             .anyRequest().authenticated()
         );  
 
+        http.addFilterBefore(jwtFilter, BasicAuthenticationFilter.class);
+
         return http.build();
     }
+
+    /*
+     * Will secure any request with filters: 
+     *      DisableEncodeUrlFilter, 
+     *      WebAsyncManagerIntegrationFilter, 
+     *      SecurityContextHolderFilter, 
+     *      HeaderWriterFilter, 
+     *      LogoutFilter, 
+     *      JwtFilter, 
+     *      BasicAuthenticationFilter, 
+     *      RequestCacheAwareFilter, 
+     *      SecurityContextHolderAwareRequestFilter, 
+     *      AnonymousAuthenticationFilter, 
+     *      SessionManagementFilter, 
+     *      ExceptionTranslationFilter, 
+     *      AuthorizationFilter
+     */
 
 }
