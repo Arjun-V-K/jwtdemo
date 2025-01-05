@@ -16,7 +16,8 @@ public class JwtService {
 
     private Logger logger = Logger.getLogger(JwtService.class.getName());
 
-    private final String SECRET_KEY = "secret";
+    // TODO: Take it from environment or application.properties file
+    private final String SECRET_KEY = "1xOHRUGrtOt0Zevag88BTkeOlZFhWe3mu8FUYncDqTs=";
     private final String ISSUER = "scholarly";
     private final long MINUTES_TO_EXPIRY = 5;
 

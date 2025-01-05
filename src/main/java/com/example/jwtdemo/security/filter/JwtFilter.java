@@ -13,13 +13,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.example.jwtdemo.model.User;
-import com.example.jwtdemo.security.model.SecurityUser;
 import com.example.jwtdemo.security.service.JwtService;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -38,29 +35,15 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-
         String token = extractToken(request);
 
         if(token == null) {
             logger.info("No Bearer token found in Authorization Header");
-            System.out.println("No Bearer token found in Authorization Header");
             filterChain.doFilter(request, response);
-
-            logger.info("Attach JWT token in response when returning");
-            /* Attach JWT token in response when returning */
-            SecurityContext securityContext = SecurityContextHolder.getContext();
-            if(securityContext.getAuthentication().getName() != null) {
-                String newJwtToken = jwtService.createToken(securityContext.getAuthentication().getName());
-                response.addCookie(new Cookie("jwt", newJwtToken));
-                logger.info(newJwtToken);
-            }
-
             return;
         }
 
         logger.info(String.format("Found Bearer token '%s' in Authorization Header", token));
-        System.out.println(String.format("Found Bearer token '%s' in Authorization Header", token));
 
         if(!jwtService.verifyToken(token)) {
             // If JWT Token is present, but invalid
@@ -70,7 +53,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
         SecurityContextHolder.setContext(securityContext);
-        securityContext.setAuthentication(new UsernamePasswordAuthenticationToken(jwtService.extractUsername(token), null, List.of(() -> jwtService.extractRole(token))));
+        securityContext.setAuthentication(new UsernamePasswordAuthenticationToken(jwtService.extractUsername(token), null, List.of(() -> "USER")));
+
+        logger.info(String.format("Set SecurityContext to %s", SecurityContextHolder.getContext().toString()));
 
         /* Forward the request to the next filter in the filter chain */
         filterChain.doFilter(request, response);
@@ -80,7 +65,7 @@ public class JwtFilter extends OncePerRequestFilter {
     /**
      * Extract the Bearer token in Authorization header from HttpRequest
      * 
-     * In Spring, it is provided AuthenticationConvertor interface
+     * In Spring, it is provided by the AuthenticationConvertor interface
      */
     private String extractToken(HttpServletRequest request) {
         
